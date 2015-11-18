@@ -14,8 +14,11 @@ class Uber(Api):
         :param client_id: Client ID for an application provided by Uber.
         :param server_token: Server token for an application provided by Uber.
         :param secret: Secret for an application provided by Uber.
-        :param redirect_uri: The URI we will redirect back to after an authorization by the resource owner. The base of the URI must match the redirect_uri used during the registration of your application.
+        :param redirect_uri: The URI we will redirect back to after an authorization by the
+        resource owner. The base of the URI must match the redirect_uri used during the registration
+        of your application.
         """
+
         self.client_id = client_id
         self.server_token = server_token
         self.secret = secret
@@ -104,7 +107,7 @@ class Uber(Api):
         return self.get_json(endpoint, 'GET', query_parameters, None, None)
 
     def get_authorize_url(self, scopes=[], state=None, response_type='code'):
-        '''
+        """
         Returns a URL to redirect users to to begin the OAuth login flow 
 
         :param scopes:     List of requested permissions. Available scopes are
@@ -115,7 +118,7 @@ class Uber(Api):
         :param response_type: Type of authorization flow to use. Only "code" is
                        supported at this time and is the default.
         :return: string
-        '''
+        """
 
         path = 'authorize'
         query_parameters = {
@@ -127,6 +130,16 @@ class Uber(Api):
         return Api.build_request(self, path, query_parameters, authorisation=True)
 
     def get_access_token(self, code):
+        """
+        Exchange the code parameter from an OAuth callback request to your
+        redirect_uri for an access token that can be used to perform
+        requests on behalf of the authorized user.
+
+        :param code:       The value of the "code" query string parameter passed
+                    by the client to your redirect_uri after successfully
+                    authenticating with Uber
+        :return: JSON
+        """
 
         endpoint = 'token'
         query_parameters = {
@@ -135,6 +148,38 @@ class Uber(Api):
             'grant_type': 'authorization_code',
             'redirect_uri': self.redirect_uri,
             'code': code
+        }
+
+        return self.get_json(endpoint, 'POST', query_parameters, None, None, authorisation=True)
+
+    def refresh_token(self, refresh_token):
+        """
+        Exchange a refresh token received in response to get_access_token
+        for a new access token with a later expiration time.
+
+        :param refresh_token:  The refresh_token value from the get_access_token
+                        response.
+        :return: JSON
+        """
+
+        endpoint = 'token'
+        query_parameters = {
+            'client_id': self.client_id,
+            'client_secret': self.secret,
+            'grant_type': 'authorization_code',
+            'redirect_uri': self.redirect_uri,
+            'refresh_token': refresh_token
+        }
+
+        return self.get_json(endpoint, 'POST', query_parameters, None, None, authorisation=True)
+
+    def revoke_token(self, token):
+
+        endpoint = 'revoke'
+        query_parameters = {
+            'client_id': self.client_id,
+            'client_secret': self.secret,
+            'token': token
         }
 
         return self.get_json(endpoint, 'POST', query_parameters, None, None, authorisation=True)
