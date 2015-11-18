@@ -8,18 +8,20 @@ class Uber(Api):
     Class holding all Uber API calls. Inherits from the base API class.
     This class is used to provide access to all the API calls which are abstracted as methods.
     """
-    def __init__(self, client_id, server_token, secret):
+    def __init__(self, client_id, server_token, secret, redirect_uri):
         """
         Instantiate a new Uber object.
         :param client_id: Client ID for an application provided by Uber.
         :param server_token: Server token for an application provided by Uber.
         :param secret: Secret for an application provided by Uber.
+        :param redirect_uri: The URI we will redirect back to after an authorization by the resource owner. The base of the URI must match the redirect_uri used during the registration of your application.
         """
         self.client_id = client_id
         self.server_token = server_token
         self.secret = secret
+        self.redirect_uri = redirect_uri
 
-        super(Uber, self).__init__(self.client_id, self.server_token, self.secret)
+        super(Uber, self).__init__(self.client_id, self.server_token, self.secret, self.redirect_uri)
 
     def get_products(self, latitude, longitude):
         """
@@ -100,3 +102,28 @@ class Uber(Api):
         }
 
         return self.get_json(endpoint, 'GET', query_parameters, None, None)
+
+    def get_authorize_url(self, scopes=[], state=None, response_type='code'):
+        '''
+        Returns a URL to redirect users to to begin the OAuth login flow 
+
+        :param scopes:     List of requested permissions. Available scopes are
+                    "profile" and "history"
+        :param state:      Optional nonce value to append to the OAuth callback after
+                    successful authentication. This allows you to track a user
+                    throughout the full OAuth flow.
+        :param response_type: Type of authorization flow to use. Only "code" is
+                       supported at this time and is the default.
+        '''
+
+        endpoint = 'authorize'
+        params = {
+            'client_id': self.client_id,
+            'response_type': response_type,
+            'scopes': ','.join(scopes),
+        }
+
+        # params = urllib.urlencode(params)
+        # url = '%s?%s' % ('https://login.uber.com/oauth/authorize', params)
+        # return url
+        return Api.build_request(self, path=endpoint, query_parameters=params, authorisation=True) 

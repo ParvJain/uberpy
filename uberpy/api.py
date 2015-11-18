@@ -15,7 +15,7 @@ class Api(object):
     Base class to handle url building, parameter encoding, adding authorisation and receiving responses.
     """
 
-    def __init__(self, client_id, server_token, secret):
+    def __init__(self, client_id, server_token, secret, redirect_uri):
         """
         Instantiate a new Api object.
         :param client_id: Client ID for an application provided by Uber.
@@ -30,9 +30,10 @@ class Api(object):
             self.server_token = server_token
         self.secret = secret
 
+        self.redirect_uri = redirect_uri
         self.client = Http()
 
-    def add_credentials(self, query_parameters):
+    def add_credentials(self, query_parameters, authorisation):
         """
         Adds the Uber server token to the query parameters to make an authorised request.
         :param query_parameters: Query parameters to be sent.
@@ -90,19 +91,23 @@ class Api(object):
         if response.status >= 500:
             raise ServerException(content, response)
 
-    def build_request(self, path, query_parameters):
+    def build_request(self, path, query_parameters, authorisation):
         """
         Build the HTTP request by adding query parameters to the path.
         :param path: API endpoint/path to be used.
         :param query_parameters: Query parameters to be added to the request.
         :return: string
         """
-        url = 'https://api.uber.com/v1' + self.sanitise_path(path)
+        if authorisation:
+            url = 'https://login.uber.com/oauth' + self.sanitise_path(path)
+        else:
+            url = 'https://api.uber.com/v1' + self.sanitise_path(path)
+
         url += '?' + urlencode(query_parameters)
 
         return url
 
-    def get_json(self, uri_path, http_method='GET', query_parameters=None, body=None, headers=None):
+    def get_json(self, uri_path, http_method='GET', query_parameters=None, body=None, headers=None, authorisation=False):
         """
         Fetches the JSON returned, after making the call and checking for errors.
         :param uri_path: Endpoint to be used to make a request.
@@ -116,10 +121,10 @@ class Api(object):
         headers = headers or {}
 
         # Add credentials to the request
-        query_parameters = self.add_credentials(query_parameters)
+        query_parameters = self.add_credentials(query_parameters, authorisation)
 
         # Build the request uri with parameters
-        uri = self.build_request(uri_path, query_parameters)
+        uri = self.build_request(uri_path, query_parameters, authorisation)
 
         if http_method in ('POST', 'PUT', 'DELETE') and 'Content-Type' not in headers:
             headers['Content-Type'] = 'application/json'
