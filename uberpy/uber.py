@@ -114,6 +114,7 @@ class Uber(Api):
                     throughout the full OAuth flow.
         :param response_type: Type of authorization flow to use. Only "code" is
                        supported at this time and is the default.
+        :return: string
         '''
 
         endpoint = 'authorize'
@@ -123,7 +124,4 @@ class Uber(Api):
             'scopes': ','.join(scopes),
         }
 
-        # params = urllib.urlencode(params)
-        # url = '%s?%s' % ('https://login.uber.com/oauth/authorize', params)
-        # return url
-        return Api.build_request(self, path=endpoint, query_parameters=params, authorisation=True) 
+        return Api.build_request(self, path=endpoint, query_parameters=params, authorisation=True)
