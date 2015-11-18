@@ -117,11 +117,24 @@ class Uber(Api):
         :return: string
         '''
 
-        endpoint = 'authorize'
-        params = {
+        path = 'authorize'
+        query_parameters = {
             'client_id': self.client_id,
             'response_type': response_type,
             'scopes': ','.join(scopes),
         }
 
-        return Api.build_request(self, path=endpoint, query_parameters=params, authorisation=True)
+        return Api.build_request(self, path, query_parameters, authorisation=True)
+
+    def get_access_token(self, code):
+
+        endpoint = 'token'
+        query_parameters = {
+            'client_id': self.client_id,
+            'client_secret': self.secret,
+            'grant_type': 'authorization_code',
+            'redirect_uri': self.redirect_uri,
+            'code': code
+        }
+
+        return self.get_json(endpoint, 'POST', query_parameters, None, None, authorisation=True)

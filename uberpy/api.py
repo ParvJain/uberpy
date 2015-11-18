@@ -6,6 +6,7 @@ from httplib2 import Http
 try:
     from urllib.parse import urlencode
 except ImportError:
+    # for python 2
     from urllib import urlencode
 
 from errors import (
@@ -143,5 +144,6 @@ class Api(object):
 
         # Check for known errors that could be returned
         self.check_status(content, response)
+        print content
 
         return json.loads(content.decode('utf-8'))
